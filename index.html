@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mening Vazifalarim</title>
+<style>
+:root{--bg:#2a2063;--card:#fff;--text:#1c1550;--muted:#9a98ad;--field:#fafbfc;--line:#e6e8f0;--red:#e32f48;--chip:#eeedfd;--chipt:#4a35c9;--item:#fafbfc;--itemt:#33324a;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#171238;--card:#221c4d;--text:#f1f0ff;--muted:#8f8cb0;--field:#2b2560;--line:#3a3375;--chip:#3a3375;--chipt:#cfc9ff;--item:#2b2560;--itemt:#e6e4ff}}
+*{box-sizing:border-box}
+html,body{min-height:100%;margin:0}
+body{background:var(--bg);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;display:flex;justify-content:center;align-items:flex-start;padding:60px 16px}
+.card{background:var(--card);width:100%;max-width:500px;border-radius:22px;padding:34px 36px;box-shadow:0 20px 50px rgba(0,0,0,.35)}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
+h1{margin:0;font-size:26px;color:var(--text)}
+.count{background:var(--chip);color:var(--chipt);font-size:13px;font-weight:700;padding:6px 14px;border-radius:20px}
+.row{display:flex;gap:10px}
+input{font:inherit;font-size:15px;padding:14px 18px;border:1px solid var(--line);border-radius:14px;background:var(--field);color:var(--text);outline:none}
+input:focus{border-color:var(--red)}
+#text{flex:1;min-width:0}
+#num{width:90px}
+#add{width:100%;margin-top:14px;padding:15px;border:0;border-radius:14px;background:var(--red);color:#fff;font:inherit;font-size:16px;cursor:pointer;box-shadow:0 8px 20px rgba(227,47,72,.35)}
+#add:active{transform:translateY(1px)}
+ul{list-style:none;margin:24px 0 0;padding:0;display:flex;flex-direction:column;gap:14px}
+li{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--item);border:1px solid var(--line);border-radius:14px;padding:16px 18px;color:var(--itemt);font-size:16px}
+li span{word-break:break-word}
+.del{background:var(--red);color:#fff;border:0;border-radius:10px;width:36px;height:36px;font-weight:700;cursor:pointer;flex:none}
+.empty{color:var(--muted);text-align:center;padding:10px 0 0}
+</style>
+</head>
+<body>
+<div class="card">
+  <header><h1>Mening Vazifalarim 📋</h1><span class="count" id="count">Jami: 0</span></header>
+  <div class="row">
+    <input id="text" type="text" placeholder="Yangi vazifa qo'shing..." autocomplete="off">
+    <input id="num" type="number" min="1" max="8" placeholder="Raqam">
+  </div>
+  <button id="add">Qo'shish</button>
+  <ul id="list"></ul>
+</div>
+<script>
+const KEY = "vazifalar";
+const EMOJIS = ["😋","🔥","⭐","📌","💡","🚀","🎯","✅"];
+const $ = id => document.getElementById(id);
+
+function load(){
+  try{
+    const raw = localStorage.getItem(KEY);
+    const data = raw ? JSON.parse(raw) : [];
+    return Array.isArray(data) ? data : [];
+  }catch(e){ return []; }
+}
+function save(){
+  try{ localStorage.setItem(KEY, JSON.stringify(tasks)); }catch(e){}
+}
+
+let tasks = load();
+
+function render(){
+  const list = $("list");
+  list.innerHTML = "";
+  tasks.forEach(t => {
+    const li = document.createElement("li");
+    const span = document.createElement("span");
+    span.textContent = t.emoji + " " + t.text;
+    const btn = document.createElement("button");
+    btn.className = "del";
+    btn.textContent = "X";
+    btn.onclick = () => { tasks = tasks.filter(x => x.id !== t.id); save(); render(); };
+    li.append(span, btn);
+    list.appendChild(li);
+  });
+  if(!tasks.length){
+    const p = document.createElement("div");
+    p.className = "empty";
+    p.textContent = "Hozircha vazifa yo'q. Birinchisini qo'shing.";
+    list.appendChild(p);
+  }
+  $("count").textContent = "Jami: " + tasks.length;
+}
+
+function add(){
+  const text = $("text").value.trim();
+  if(!text) return;
+  const n = parseInt($("num").value, 10);
+  const emoji = EMOJIS[(n >= 1 && n <= 8 ? n : 1) - 1];
+  tasks.push({ id: Date.now(), text, emoji });
+  save(); render();
+  $("text").value = ""; $("num").value = "";
+  $("text").focus();
+}
+
+$("add").onclick = add;
+$("text").addEventListener("keydown", e => { if(e.key === "Enter") add(); });
+render();
+</script>
+</body>
+</html>
